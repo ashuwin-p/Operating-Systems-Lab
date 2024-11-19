@@ -1,148 +1,146 @@
-from collections import deque
+# Page Preplacement Algorithms
 
 class FIFO:
-    def __init__(self, max_capacity):
-        self.max_capacity = max_capacity
-        self.memory = deque(maxlen = max_capacity)
-        self.page_faults = 0
-
-    def memoryFull(self):
-        return len(self.memory) == self.max_capacity
-    
-    def display(self):
-        print("Memory Status : ",list(self.memory))
-    
-    def insert_page(self, page):
-        if page not in self.memory:
-            self.page_faults += 1
-            print(f"\nPage Miss : Page {page}")
-            if self.memoryFull():
-                print(f"Removing Page {self.memory[0]} from Memory")
-            
-            print(f"Loading Page {page} into Memory")
-            self.memory.append(page)
-        else:
-            print(f"\nPage Hit : Page {page}")
-        
-        self.display()
-    
-    def get_page_faults(self):
-        return self.page_faults
-    
-# if __name__ == '__main__':
-#     pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2]
-#     capacity = 3 
-
-#     PR = FIFO(capacity)
-
-#     for page in pages:
-#         PR.insert_page(page)
-    
-#     print(f"\nTotal Page Faults : {PR.get_page_faults()}\n")
-            
-
-
-class LRU:
-    def __init__(self, max_capacity):
-        self.max_capacity = max_capacity
+    def __init__(self, capacity):
         self.memory = []
-        self.page_faults = 0
-
-    def memoryFull(self):
-        return len(self.memory) == self.max_capacity
+        self.capacity = capacity
+        self.page_fault = 0
     
-    def display(self):
-        print("Memory Status : ",list(self.memory))
-    
+    def isFull(self):
+        return self.capacity == len(self.memory)
+        
     def insert_page(self, page):
-        if page not in self.memory:
-            self.page_faults += 1
-            print(f"\nPage Miss : Page {page}")
-            if self.memoryFull():
-                lru_page = self.memory.pop(0)
-                print(f"Removing Page {lru_page} from Memory")
+        before = self.memory.copy()
+        if not page in self.memory:
+            self.page_fault += 1
+            if self.isFull():
+                self.memory.pop(0)
+            self.memory.append(page)
             
-            print(f"Loading Page {page} into Memory")
-            self.memory.append(page)
-        else:
-            print(f"\nPage Hit : Page {page}, Updating Position ...")
-            self.memory.remove(page)
-            self.memory.append(page)
-        
-        self.display()
-    
-    def get_page_faults(self):
-        return self.page_faults
-    
-
-# if __name__ == '__main__':
-#     pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2]
-#     capacity = 3 
-
-#     PR = LRU(capacity)
-
-#     for page in pages:
-#         PR.insert_page(page)
-    
-#     print(f"\nTotal Page Faults : {PR.get_page_faults()}\n")
+            print(f"{str(before):<15} {page} \t MISS \t {self.memory}")
 
 
-class OptimalPR:
-    def __init__(self, max_capacity):
-        self.max_capacity = max_capacity
-        self.memory = []
-        self.page_faults = 0
-
-    def memoryFull(self):
-        return len(self.memory) == self.max_capacity
-    
-    def display(self):
-        print("Memory Status : ",list(self.memory))
-    
-    def insert_page(self, page, future_request):
-        if page not in self.memory:
-            self.page_faults += 1
-            print(f"\nPage Miss : Page {page}")
-
-            if self.memoryFull():
-                optimal_page = self.find_optimal_page(page, future_request)
-                self.memory.remove(optimal_page)
-                print(f"Removing Page {optimal_page} from Memory")
-            
-            print(f"Loading Page {page} into Memory")
-            self.memory.append(page)
         
         else:
-            print(f"\nPage Hit : Page {page}")
+            print(f"{str(before):<15} {page} \t HIT \t {self.memory}")
+
+    
+    def run(self, pages):
+        print(f"{'BEFORE':<15} PAGE \t STATUS \t AFTER")
+
+        for page in pages:
+            self.insert_page(page)
         
-        self.display()
-    
-    def find_optimal_page(self, page, future_request):
-        optimal_page = None
-        optimal_index = -1
-
-        for current_page in self.memory:
-            try:
-                index = future_request.index(current_page)
-            except:
-                return current_page
-            
-            if index > optimal_index:
-                optimal_index = index
-                optimal_page = current_page
-
-        return optimal_page
-    
-    def get_page_faults(self):
-        return self.page_faults
+        print(f"\nFAULT RATIO : {self.page_fault / len(pages)}")
+        print(f"\nHIT RATIO   : {(len(pages) - self.page_fault) / len(pages)}")
+        
 
 if __name__ == '__main__':
     pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2]
-    capacity = 3 
+    PR = FIFO(3)
+    PR.run(pages)
+        
 
-    PR = OptimalPR(capacity)
 
-    for idx, page in enumerate(pages):
-        PR.insert_page(page, pages[idx+1 : ])
+class LRU:
+    def __init__(self, capacity):
+        self.memory = []
+        self.capacity = capacity
+        self.page_fault = 0
     
-    print(f"\nTotal Page Faults : {PR.get_page_faults()}\n")
+    def isFull(self):
+        return self.capacity == len(self.memory)
+        
+    def insert_page(self, page):
+        before = self.memory.copy()
+        if not page in self.memory:
+            self.page_fault += 1
+            if self.isFull():
+                self.memory.pop(0)
+            self.memory.append(page)
+            
+            print(f"{str(before):<15} {page} \t MISS \t {self.memory}")
+
+
+        
+        else:
+            self.memory.remove(page)
+            self.memory.append(page)
+            print(f"{str(before):<15} {page} \t HIT \t {self.memory}")
+
+    
+    def run(self, pages):
+        print(f"{'BEFORE':<15} PAGE \t STATUS \t AFTER")
+
+        for page in pages:
+            self.insert_page(page)
+        
+        print(f"\nFAULT RATIO : {self.page_fault / len(pages)}")
+        print(f"\nHIT RATIO   : {(len(pages) - self.page_fault) / len(pages)}")
+        
+
+if __name__ == '__main__':
+    pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2]
+    PR = LRU(3)
+    PR.run(pages)
+
+
+# Page Preplacement Algorithms
+
+class OPTIMAL_PR:
+    def __init__(self, capacity):
+        self.memory = []
+        self.capacity = capacity
+        self.page_fault = 0
+    
+    def isFull(self):
+        return self.capacity == len(self.memory)
+        
+    def insert_page(self, page, future_request):
+        before = self.memory.copy()
+        if not page in self.memory:
+            self.page_fault += 1
+            if self.isFull():
+                page_remove = self.get_optimal(page, future_request)
+                self.memory.remove(page_remove)
+                
+            self.memory.append(page)
+            
+            print(f"{str(before):<15} {page} \t MISS \t {self.memory}")
+
+
+        
+        else:
+            print(f"{str(before):<15} {page} \t HIT \t {self.memory}")
+    
+    def get_optimal(self, page, future_request):
+        optimal_page = None
+        optimal_index = -1
+        
+        for page in self.memory:
+            try:
+                index = future_request.index(page)
+            except:
+                return page
+            
+            if index > optimal_index:
+                optimal_index = index
+                optimal_page = page
+        
+        return optimal_page
+
+    
+    def run(self, pages):
+        print(f"{'BEFORE':<15} PAGE \t STATUS \t AFTER")
+
+        for i, page in enumerate(pages):
+            self.insert_page(page, pages[i+1 : ])
+        
+        print(f"\nFAULT RATIO : {self.page_fault / len(pages)}")
+        print(f"\nHIT RATIO   : {(len(pages) - self.page_fault) / len(pages)}")
+        
+
+if __name__ == '__main__':
+    pages = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2]
+    PR = OPTIMAL_PR(3)
+    PR.run(pages)
